@@ -10,7 +10,7 @@ public class Test : MonoBehaviour
     MeshFilter mF;
     [SerializeField]
     MeshCollider mC;
-    public float forceMultiplier = 1f;
+    public float forceMultiplier = 0.2f;
 
     public bool recalculateBounds = true;
     public bool recalculateNormals = true;
@@ -126,11 +126,9 @@ public class Test : MonoBehaviour
         Vector3[] softVerts = mF.sharedMesh.vertices;
         Vector3 localVert;
         float nearDistance = float.MaxValue;
+        Vector3 localPoint;
 
         var hitPoint = inHitPoint;
-
-        Vector3 localPoint = hitPoint;
-
         hitPoint = transform.InverseTransformPoint(inHitPoint);
 
         var center = new Vector3(hitPoint.x, 0.0f, 0.0f);
@@ -167,10 +165,11 @@ public class Test : MonoBehaviour
         {
             localVert = softVerts[i];
             var centerToLocal = (localVert - center);
-            var angle = Vector3.SignedAngle(centerToHit, centerToLocal, Vector3.right);
+            centerToLocal.x = centerToHit.x;
+            var angle = Vector3.SignedAngle(centerToHit.normalized, centerToLocal.normalized, Vector3.right);
             var quaternion = Quaternion.AngleAxis(angle, Vector3.right);
             localPoint = quaternion * hitPoint;
-
+            var normal = (quaternion * hitToCenter).normalized;
             if (bShowSamplePoint)
             {
                 if (sampleObjects[i] == null)
@@ -182,7 +181,6 @@ public class Test : MonoBehaviour
                 }
                 sampleObjects[i].transform.position = localPoint;
             }
-            var normal = (quaternion * hitToCenter).normalized;
             float tmpDist = Vector3.SqrMagnitude(localPoint - localVert);
             if (tmpDist < maxDist)
             {
@@ -214,7 +212,6 @@ public class Test : MonoBehaviour
         CheckDynamic();
     }
 
-
     void CheckDynamic()
     {
         if (dynamicMeshCollision)
@@ -244,5 +241,4 @@ public class Test : MonoBehaviour
         mC = gameObject.AddComponent<MeshCollider>();
         mC.sharedMesh = mF.sharedMesh;
     }
-
 }
